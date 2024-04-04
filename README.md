@@ -34,4 +34,3 @@
 > <p>- delete: delete teacher</p>
 
 
-Going to update more soon!!!
