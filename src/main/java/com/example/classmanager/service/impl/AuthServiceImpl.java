@@ -117,24 +117,7 @@ public class AuthServiceImpl implements AuthService {
         Set<ERole> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
 
         // check teacher account or student account and update
-        if (roles.contains(ERole.ROLE_TEACHER)){
-            var teacher = teacherRepository.findById(user.getTeacher().getId()).orElseThrow();
-
-            teacher.setFullName(request.getFullName());
-            teacher.setGender(request.getGender());
-            teacher.setDateOfBirth(request.getDateOfBirth());
-
-            teacherRepository.save(teacher);
-        }
-        else if (roles.contains(ERole.ROLE_STUDENT)){
-            var st = studentRepository.findById(user.getStudent().getId()).orElseThrow();
-
-            st.setFullName(request.getFullName());
-            st.setGender(request.getGender());
-            st.setDateOfBirth(request.getDateOfBirth());
-
-            studentRepository.save(st);
-        }
+        updateInfo(roles, request, user);
 
         userRepository.save(user);
     }
@@ -177,6 +160,32 @@ public class AuthServiceImpl implements AuthService {
                     .user(user)
                     .build());
         }
+    }
+
+    private void updateInfo(Set<ERole> roles, UserDto request, User user){
+        if (roles.isEmpty()){
+            throw new CommonException("List role empty at update service");
+        }else {
+            if (roles.contains(ERole.ROLE_TEACHER)){
+                var teacher = teacherRepository.findById(user.getTeacher().getId()).orElseThrow();
+
+                teacher.setFullName(request.getFullName());
+                teacher.setGender(request.getGender());
+                teacher.setDateOfBirth(request.getDateOfBirth());
+
+                teacherRepository.save(teacher);
+            }
+            else if (roles.contains(ERole.ROLE_STUDENT)){
+                var st = studentRepository.findById(user.getStudent().getId()).orElseThrow();
+
+                st.setFullName(request.getFullName());
+                st.setGender(request.getGender());
+                st.setDateOfBirth(request.getDateOfBirth());
+
+                studentRepository.save(st);
+            }
+        }
+
     }
 
 }
