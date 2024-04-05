@@ -9,8 +9,6 @@ import com.example.classmanager.repository.RoomRepository;
 import com.example.classmanager.repository.StudentRepository;
 import com.example.classmanager.repository.TeacherRepository;
 import com.example.classmanager.service.RoomService;
-import com.example.classmanager.service.StudentService;
-import com.example.classmanager.service.TeacherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -70,18 +68,62 @@ public class RoomServiceImpl implements RoomService {
         }
 
 
-        // get list update user
-        Set<Student> updateStudents = getStudentsFromId(request.getStudentsId());
-        Set<Teacher> updateTeachers = getTeachersFromId(request.getTeachersId());
+        // update user
+        updateStudentsFromId(request.getStudentsId(), room);
+        updateTeachersFromId(request.getTeachersId(), room);
+
 
         // do update
         room.setName(request.getName());
         room.setDescription(request.getDescription());
-        room.setStudents(updateStudents);
-        room.setTeachers(updateTeachers);
-        
+
         return roomRepository.save(room);
     }
+
+    private void updateStudentsFromId(Set<Long> ids, Room room){
+        if (ids != null){
+            Set<Student> students = ids
+                    .stream().map(st ->  studentRepository
+                            .findById(st)
+                            .orElseThrow(() -> new CommonException("Student not found." + st)))
+
+                            . collect(Collectors.toSet());
+
+
+            for (Student student : students){
+                student.getRooms().add(room);
+                studentRepository.save(student);
+            }
+        }
+        else {
+            throw new CommonException("List empty");
+        }
+
+
+    }
+
+    private void updateTeachersFromId(Set<Long> ids, Room room){
+
+        if (ids != null){
+            Set<Teacher> teachers = ids
+                    .stream().map(st ->  teacherRepository
+                            .findById(st)
+                            .orElseThrow(() -> new CommonException("Student not found." + st)))
+
+                    . collect(Collectors.toSet());
+
+
+            for (Teacher teacher : teachers){
+                teacher.getRooms().add(room);
+                teacherRepository.save(teacher);
+            }
+        }
+        else {
+            throw new CommonException("List empty");
+        }
+
+    }
+
 
     private Set<Student> getStudentsFromId(Set<Long> ids){
         Set<Student> list = new HashSet<>();
