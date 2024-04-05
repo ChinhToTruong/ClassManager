@@ -1,9 +1,7 @@
 package com.example.classmanager.service.impl;
 
-import com.example.classmanager.dto.request.RoomRequest;
+import com.example.classmanager.dto.request.BaseRoomInfoRequest;
 import com.example.classmanager.entity.Room;
-import com.example.classmanager.entity.Student;
-import com.example.classmanager.entity.Teacher;
 import com.example.classmanager.exception.custom.CommonException;
 import com.example.classmanager.repository.RoomRepository;
 import com.example.classmanager.repository.StudentRepository;
@@ -12,10 +10,7 @@ import com.example.classmanager.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,12 +30,8 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Room createRoom(RoomRequest request) {
+    public Room createRoom(BaseRoomInfoRequest request) {
         // create new room
-
-        // get user will be on room
-        Set<Teacher> teachers = getTeachersFromId(request.getTeachersId());
-        Set<Student> students = getStudentsFromId(request.getStudentsId());
 
         // check room exist
         if(roomRepository.findRoomByName(request.getName()).isPresent()){
@@ -50,15 +41,13 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository.save(Room.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .teachers(teachers)
-                .students(students)
                 .build());
 
 
     }
 
     @Override
-    public Room updateRoomById(Long id, RoomRequest request) {
+    public Room updateRoomById(Long id, BaseRoomInfoRequest request) {
         // update room info include: student, teacher, ...
 
         // check room existed on db
@@ -67,15 +56,6 @@ public class RoomServiceImpl implements RoomService {
             throw new CommonException("Room not found");
         }
 
-
-        // update user
-        Set<Teacher> teachers = getTeachersFromId(request.getTeachersId());
-        Set<Student> students = getStudentsFromId(request.getStudentsId());
-
-        updateStudentsFromId(students, room);
-        updateTeachersFromId(teachers, room);
-
-
         // do update
         room.setName(request.getName());
         room.setDescription(request.getDescription());
@@ -83,62 +63,41 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository.save(room);
     }
 
-    private void updateStudentsFromId(Set<Student> students, Room room){
-        if (students != null){
-            for (Student student : students){
-                student.getRooms().add(room);
-                studentRepository.save(student);
-            }
+    @Override
+    public void deleteRoomById(Long id) {
+        Room room = getRoomById(id);
+        if (room == null){
+            throw new CommonException("Room not found");
         }
-        else {
-            throw new CommonException("List empty");
-        }
-
-
-    }
-
-    private void updateTeachersFromId(Set<Teacher> teachers, Room room){
-
-        if (teachers != null){
-            for (Teacher teacher : teachers){
-                teacher.getRooms().add(room);
-                teacherRepository.save(teacher);
-            }
-        }
-        else {
-            throw new CommonException("List empty");
-        }
-
+        roomRepository.delete(room);
     }
 
 
-    private Set<Student> getStudentsFromId(Set<Long> ids){
-        Set<Student> list = new HashSet<>();
-
-        if (ids != null){
-            ids
-                    .stream().map(st ->  studentRepository
-                            .findById(st)
-                            .orElseThrow(() -> new CommonException("Teacher not found." + st)))
-                    .forEach(list::add);
-        }
-
-        return list;
-
-    }
-
-    private Set<Teacher> getTeachersFromId(Set<Long> ids){
-        Set<Teacher> list = new HashSet<>();
-
-        if (ids != null){
-            ids
-                    .stream().map(t ->  teacherRepository
-                            .findById(t)
-                            .orElseThrow(() -> new CommonException("Teacher not found." + t)))
-                    .forEach(list::add);
-        }
-
-        return list;
-    }
-
+    //    private void updateStudentsToRoom(Set<Student> students, Room room){
+//        if (students != null){
+//            for (Student student : students){
+//                student.getRooms().add(room);
+//                studentRepository.save(student);
+//            }
+//        }
+//        else {
+//            throw new CommonException("List empty");
+//        }
+//
+//
+//    }
+//
+//    private void updateTeachersToRoom(Set<Teacher> teachers, Room room){
+//
+//        if (teachers != null){
+//            for (Teacher teacher : teachers){
+//                teacher.getRooms().add(room);
+//                teacherRepository.save(teacher);
+//            }
+//        }
+//        else {
+//            throw new CommonException("List empty");
+//        }
+//
+//    }
 }

@@ -1,17 +1,15 @@
 package com.example.classmanager.service.impl;
 
 import com.example.classmanager.dto.UserDto;
+import com.example.classmanager.dto.request.BaseInfoUserRequest;
 import com.example.classmanager.entity.Room;
 import com.example.classmanager.entity.Student;
 import com.example.classmanager.exception.custom.CommonException;
-import com.example.classmanager.repository.RoleRepository;
 import com.example.classmanager.repository.RoomRepository;
 import com.example.classmanager.repository.StudentRepository;
 import com.example.classmanager.service.StudentService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Set;
@@ -24,42 +22,68 @@ public class StudentServiceImpl implements StudentService {
     private final RoomRepository roomRepository;
 
     @Override
-    public List<UserDto> getStudentByRoomId(Long id) {
-        // get user in room
-
-        // get students
-        Set<Student> students = roomRepository.findRoomById(id).orElseThrow().getStudents();
-        return students.stream().map(s -> UserDto.builder()
-                        .fullName(s.getFullName())
-                        .gender(s.getGender())
-                        .id(s.getId())
-                        .dateOfBirth(s.getDateOfBirth())
-                        .build())
-                .toList();
+    public Set<Student> getStudentByRoomId(Long id) {
+        return roomRepository.findRoomById(id).orElseThrow().getStudents();
     }
 
     @Override
-    public UserDto updateStudentById(UserDto userDto) {
+    public Student updateStudentById(Long id, BaseInfoUserRequest request) {
         // update user
 
         // get user
-        Student student = studentRepository.findStudentById(userDto.getId()).orElseThrow(() -> new CommonException("Student not found."));
-
-        // set room which student will join
-        Set<Room> rooms = userDto.getRooms()
-                .stream().map(r -> roomRepository
-                        .findRoomByName(r).orElseThrow(() -> new CommonException("Room not found " + r)))
-                .collect(Collectors.toSet());
+        Student student = studentRepository.findStudentById(id).orElseThrow(() -> new CommonException("Student not found."));
 
         // do update
-        student.setRooms(rooms);
-        student.setGender(userDto.getGender());
-        student.setEmail(userDto.getEmail());
-        student.setFullName(userDto.getFullName());
+        student.setGender(request.getGender());
+        student.setEmail(request.getEmail());
+        student.setFullName(request.getFullName());
 
         // save info
         studentRepository.save(student);
 
-        return userDto;
+        return student;
+    }
+
+    @Override
+    public List<Student> getAllStudents() {
+        return studentRepository.findAll();
+    }
+
+    @Override
+    public void deleteStudentById(Long id) {
+        var student  = studentRepository.findStudentById(id).orElseThrow(() -> new CommonException("Student not found " + id));
+        studentRepository.delete(student);
+    }
+
+    @Override
+    public void addStudentToRoom(Long studentId, Long roomId) {
+
+        // get user from userId, room from roomId
+        var student  = studentRepository.findStudentById(studentId).orElseThrow(() -> new CommonException("Student not found " + studentId));
+        var room = roomRepository.findRoomById(roomId).orElseThrow(() -> new CommonException("Room not found " + roomId));
+
+        // check student in room. if not in room then add room
+        if (student.getRooms().contains(room)){
+            throw new CommonException("Student " + student.getFullName() + " in this room " + room.getName());
+        }
+        student.getRooms().add(room);
+
+        studentRepository.save(student);
+    }
+
+    @Override
+    public void removeStudentFromRoom(Long studentId, Long roomId) {
+
+        // get user from userId, room from roomId
+        var student  = studentRepository.findStudentById(studentId).orElseThrow(() -> new CommonException("Student not found " + studentId));
+        var room = roomRepository.findRoomById(roomId).orElseThrow(() -> new CommonException("Room not found " + roomId));
+
+        // check student in room. if in room then remove room
+        if (!student.getRooms().contains(room)){
+            throw new CommonException("Student " + student.getFullName() + "not in this room " + room.getName());
+        }
+        student.getRooms().remove(room);
+
+        studentRepository.save(student);
     }
 }

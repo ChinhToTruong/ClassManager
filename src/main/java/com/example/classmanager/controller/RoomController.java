@@ -1,16 +1,12 @@
 package com.example.classmanager.controller;
 
-import com.example.classmanager.dto.request.RoomRequest;
+import com.example.classmanager.dto.request.BaseRoomInfoRequest;
 import com.example.classmanager.dto.response.ApiResponse;
-import com.example.classmanager.entity.Room;
-import com.example.classmanager.exception.custom.CommonException;
 import com.example.classmanager.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,7 +35,7 @@ public class RoomController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createRoom(@RequestBody RoomRequest request){
+    public ResponseEntity<?> createRoom(@RequestBody BaseRoomInfoRequest request){
         return ApiResponse.build()
                 .withData(roomService.createRoom(request))
                 .withMessage("Success")
@@ -49,7 +45,7 @@ public class RoomController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateRoom(@PathVariable("id") Long id, @RequestBody RoomRequest request){
+    public ResponseEntity<?> updateRoomById(@PathVariable("id") Long id, @RequestBody BaseRoomInfoRequest request){
         return ApiResponse.build()
                 .withData(roomService.updateRoomById(id, request))
                 .withMessage("Success")
@@ -58,4 +54,14 @@ public class RoomController {
                 .toEntity();
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteRoomById(@PathVariable("id") Long id){
+
+        roomService.deleteRoomById(id);
+        return ApiResponse.build()
+                .withMessage("Success")
+                .withHttpStatus(HttpStatus.OK)
+                .withSuccess(true)
+                .toEntity();
+    }
 }

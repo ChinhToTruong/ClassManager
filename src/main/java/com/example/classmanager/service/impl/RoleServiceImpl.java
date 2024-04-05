@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +28,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Set<Role> createRole(UserDto userDto) {
+    public void createRole(UserDto userDto) {
         // create new roles
         Set<Role> roleName = userDto.getRoles().stream().map(String::toUpperCase).map(r -> Role.builder().name(ERole.valueOf(r)).build()).collect(Collectors.toSet());
 
@@ -48,7 +47,6 @@ public class RoleServiceImpl implements RoleService {
             throw new CommonException("Some roles exist.");
         }
         roleRepository.saveAll(roleName);
-        return roleName;
     }
 
     @Override
@@ -57,22 +55,8 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Role findByName(String name) {
-        return null;
+    public Role findByName(ERole name) {
+        return roleRepository.findByName(name).orElseThrow(() -> new CommonException("Role not found" +  name));
     }
 
-    @Override
-    public User removeUserFromRole(Long userId, Long roleId) {
-        return null;
-    }
-
-    @Override
-    public User assignRoleToUser(Long userId, Long roleId) {
-        return null;
-    }
-
-    @Override
-    public Role removeAllUsersFromRole(Long roleId) {
-        return null;
-    }
 }

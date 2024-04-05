@@ -1,8 +1,8 @@
 package com.example.classmanager.controller;
 
-import com.example.classmanager.dto.UserDto;
-import com.example.classmanager.dto.request.LoginRequest;
-import com.example.classmanager.dto.request.RegisterRequest;
+
+import com.example.classmanager.dto.request.UsernamePasswordRequest;
+import com.example.classmanager.dto.request.UsernamePasswordRoleRequest;
 import com.example.classmanager.dto.response.ApiResponse;
 import com.example.classmanager.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class AuthController {
     private final AuthService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request){
+    public ResponseEntity<?> register(@RequestBody UsernamePasswordRoleRequest request){
         return ApiResponse.build()
                 .withSuccess(true)
                 .withHttpStatus(HttpStatus.OK)
@@ -27,7 +27,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request){
+    public ResponseEntity<?> login(@RequestBody UsernamePasswordRequest request){
         return ApiResponse.build()
                 .withSuccess(true)
                 .withHttpStatus(HttpStatus.OK)
@@ -37,14 +37,13 @@ public class AuthController {
     }
 
 
-    @PostMapping("/update")
-    public ResponseEntity<?> update(@RequestBody UserDto request){
-        userService.updateUserInfo(request);
+    @PostMapping("/update/{id}")
+    public ResponseEntity<?> update(@PathVariable("id") Long id,@RequestBody UsernamePasswordRoleRequest request){
+        userService.updateUserInfo(id, request);
         return ApiResponse.build()
                 .withSuccess(true)
                 .withHttpStatus(HttpStatus.OK)
                 .withMessage("Update successfully.")
-                .withData(request)
                 .toEntity();
     }
 }

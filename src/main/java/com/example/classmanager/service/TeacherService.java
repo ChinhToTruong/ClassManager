@@ -1,6 +1,7 @@
 package com.example.classmanager.service;
 
 import com.example.classmanager.dto.UserDto;
+import com.example.classmanager.dto.request.BaseInfoUserRequest;
 import com.example.classmanager.entity.Teacher;
 import com.example.classmanager.entity.User;
 
@@ -9,14 +10,18 @@ import java.util.Optional;
 
 public interface TeacherService {
     // get all teacher in list
-    List<UserDto> getAllTeachers();
+    List<Teacher> getAllTeachers();
 
     // filter by name
-    List<UserDto> getTeacherByName(String name);
+    Teacher getTeacherById(Long id);
 
     // update info teacher include rooms and info
-    Optional<UserDto> updateTeacher(UserDto userDto);
+    Teacher updateInfoTeacherById(Long id, BaseInfoUserRequest request);
 
     // delete teacher from db
-    void deleteTeacher(String name);
+    void deleteTeacherById(Long id);
+
+    void addStudentToRoom(Long teacherId, Long roomId);
+
+    void removeStudentFromRoom(Long teacherId, Long roomId);
 }

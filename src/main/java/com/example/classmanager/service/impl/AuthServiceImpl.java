@@ -1,8 +1,8 @@
 package com.example.classmanager.service.impl;
 
 import com.example.classmanager.dto.UserDto;
-import com.example.classmanager.dto.request.LoginRequest;
-import com.example.classmanager.dto.request.RegisterRequest;
+import com.example.classmanager.dto.request.UsernamePasswordRequest;
+import com.example.classmanager.dto.request.UsernamePasswordRoleRequest;
 import com.example.classmanager.dto.response.JwtResponse;
 import com.example.classmanager.entity.*;
 import com.example.classmanager.entity.enums.ERole;
@@ -12,15 +12,14 @@ import com.example.classmanager.repository.*;
 import com.example.classmanager.security.customUser.CustomUserDetails;
 import com.example.classmanager.security.jwt.JwtUtils;
 import com.example.classmanager.service.AuthService;
-import com.example.classmanager.service.StudentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private final SummaryRepository summaryRepository;
 
     @Override
-    public User register(RegisterRequest request) {
+    public User register(UsernamePasswordRoleRequest request) {
         // create new account
 
         // check account exist
@@ -56,18 +55,17 @@ public class AuthServiceImpl implements AuthService {
             throw new UsernameNotFoundException("Username already existed!");
         }
 
-        Set<Role> roles = new  HashSet<>();
 
         // get roles
-        var role = roleRepository.findByName(ERole.valueOf(request.getRole())).orElseThrow(()-> new CommonException("Role not found. Please create new role."));
-        roles.add(role);
+        var roles = request.getRoles().stream().map(r -> roleRepository.findByName(ERole.valueOf(r)).orElseThrow(()-> new CommonException("Role not found. Please create new role."))).collect(Collectors.toSet());
 
         // create new entity without info link to account
         var user = userRepository.save(User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .roles(roles)
+                        .roles(roles)
                 .build());
+
         roles.forEach(r -> {
             saveUserEntity(user, r);
         });
@@ -76,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public JwtResponse login(LoginRequest request) {
+    public JwtResponse login(UsernamePasswordRequest request) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -105,21 +103,19 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public void updateUserInfo(UserDto request) {
+    public void updateUserInfo(Long id, UsernamePasswordRoleRequest request) {
 
-        // get user
-        User user = userRepository.findUserByUsername(request.getUsername()).orElseThrow();
+        // get user from request
+        User user = userRepository.findById(id).orElseThrow();
 
-        // update info
+        // set info update
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        Set<ERole> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+        var updateRoles = request.getRoles().stream().map(r ->  roleRepository.findByName(ERole.valueOf(r)).orElseThrow(() ->  new CommonException("Role not exist" + r))).collect(Collectors.toSet());
 
-        // check teacher account or student account and update
-        updateInfo(roles, request, user);
-
-        userRepository.save(user);
+        // save user
+        userRepository.save(updateRoleUser(updateRoles, user));
     }
 
     private void saveUserToken(User user, String jwtToken) {
@@ -162,30 +158,23 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private void updateInfo(Set<ERole> roles, UserDto request, User user){
-        if (roles.isEmpty()){
-            throw new CommonException("List role empty at update service");
-        }else {
-            if (roles.contains(ERole.ROLE_TEACHER)){
-                var teacher = teacherRepository.findById(user.getTeacher().getId()).orElseThrow();
+    private User updateRoleUser(Set<Role> roles, User user){
+        Set<Role> existRole = user.getRoles();
 
-                teacher.setFullName(request.getFullName());
-                teacher.setGender(request.getGender());
-                teacher.setDateOfBirth(request.getDateOfBirth());
+        Set<Role> updateRoles = roles.stream().map(role -> roleRepository.findByName(role.getName()).orElseThrow(()-> new CommonException("Role not found "  +role))).collect(Collectors.toSet());
 
-                teacherRepository.save(teacher);
+        for(Role r : updateRoles){
+            // check user have this role or not
+            if (existRole.contains(r)){
+                throw new CommonException("User have this role " + r.getName());
             }
-            else if (roles.contains(ERole.ROLE_STUDENT)){
-                var st = studentRepository.findById(user.getStudent().getId()).orElseThrow();
 
-                st.setFullName(request.getFullName());
-                st.setGender(request.getGender());
-                st.setDateOfBirth(request.getDateOfBirth());
-
-                studentRepository.save(st);
-            }
+            // add if not have role
+            existRole.add(r);
+            user.setRoles(existRole);
         }
 
+        return user;
     }
 
 }
