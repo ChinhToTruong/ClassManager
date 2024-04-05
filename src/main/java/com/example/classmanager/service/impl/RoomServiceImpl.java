@@ -69,8 +69,11 @@ public class RoomServiceImpl implements RoomService {
 
 
         // update user
-        updateStudentsFromId(request.getStudentsId(), room);
-        updateTeachersFromId(request.getTeachersId(), room);
+        Set<Teacher> teachers = getTeachersFromId(request.getTeachersId());
+        Set<Student> students = getStudentsFromId(request.getStudentsId());
+
+        updateStudentsFromId(students, room);
+        updateTeachersFromId(teachers, room);
 
 
         // do update
@@ -80,16 +83,8 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository.save(room);
     }
 
-    private void updateStudentsFromId(Set<Long> ids, Room room){
-        if (ids != null){
-            Set<Student> students = ids
-                    .stream().map(st ->  studentRepository
-                            .findById(st)
-                            .orElseThrow(() -> new CommonException("Student not found." + st)))
-
-                            . collect(Collectors.toSet());
-
-
+    private void updateStudentsFromId(Set<Student> students, Room room){
+        if (students != null){
             for (Student student : students){
                 student.getRooms().add(room);
                 studentRepository.save(student);
@@ -102,17 +97,9 @@ public class RoomServiceImpl implements RoomService {
 
     }
 
-    private void updateTeachersFromId(Set<Long> ids, Room room){
+    private void updateTeachersFromId(Set<Teacher> teachers, Room room){
 
-        if (ids != null){
-            Set<Teacher> teachers = ids
-                    .stream().map(st ->  teacherRepository
-                            .findById(st)
-                            .orElseThrow(() -> new CommonException("Student not found." + st)))
-
-                    . collect(Collectors.toSet());
-
-
+        if (teachers != null){
             for (Teacher teacher : teachers){
                 teacher.getRooms().add(room);
                 teacherRepository.save(teacher);
