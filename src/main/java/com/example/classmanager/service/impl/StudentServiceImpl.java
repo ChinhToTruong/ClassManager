@@ -25,6 +25,9 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public List<UserDto> getStudentByRoomId(Long id) {
+        // get user in room
+
+        // get students
         Set<Student> students = roomRepository.findRoomById(id).orElseThrow().getStudents();
         return students.stream().map(s -> UserDto.builder()
                         .fullName(s.getFullName())
@@ -37,18 +40,24 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public UserDto updateStudentById(UserDto userDto) {
+        // update user
+
+        // get user
         Student student = studentRepository.findStudentById(userDto.getId()).orElseThrow(() -> new CommonException("Student not found."));
 
+        // set room which student will join
         Set<Room> rooms = userDto.getRooms()
                 .stream().map(r -> roomRepository
                         .findRoomByName(r).orElseThrow(() -> new CommonException("Room not found " + r)))
                 .collect(Collectors.toSet());
 
+        // do update
         student.setRooms(rooms);
         student.setGender(userDto.getGender());
         student.setEmail(userDto.getEmail());
         student.setFullName(userDto.getFullName());
 
+        // save info
         studentRepository.save(student);
 
         return userDto;

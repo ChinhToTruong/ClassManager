@@ -28,6 +28,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public List<UserDto> getAllTeachers() {
+
         List<Teacher> teachers = teacherRepository.findAll();
 
         return teachers.stream()
@@ -45,7 +46,9 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public List<UserDto> getTeacherByName(String name) {
+
         List<Teacher> teachers = teacherRepository.findTeachersByFullName(name);
+
         return teachers.stream().map(this::teacherToUserDto).toList();
     }
 
@@ -96,6 +99,7 @@ public class TeacherServiceImpl implements TeacherService {
         Set<Room> rooms = new HashSet<>();
         userDto.getRooms().forEach(room -> rooms.add(roomRepository.findRoomByName(room).orElseThrow(()-> new CommonException("Room not found " + room))));
 
+        // do update
         teacher.setRooms(rooms);
         teacher.setGender(userDto.getGender());
         teacher.setDateOfBirth(userDto.getDateOfBirth());

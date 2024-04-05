@@ -38,9 +38,13 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public Room createRoom(RoomRequest request) {
+        // create new room
+
+        // get user will be on room
         Set<Teacher> teachers = getTeachersFromId(request.getTeachersId());
         Set<Student> students = getStudentsFromId(request.getStudentsId());
 
+        // check room exist
         if(roomRepository.findRoomByName(request.getName()).isPresent()){
             throw new CommonException("Room existed.");
         }
@@ -57,19 +61,22 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public Room updateRoomById(Long id, RoomRequest request) {
-        Room room = getRoomById(id);
+        // update room info include: student, teacher, ...
 
+        // check room existed on db
+        Room room = getRoomById(id);
         if (room == null){
             throw new CommonException("Room not found");
         }
 
 
+        // get list update user
         Set<Student> updateStudents = getStudentsFromId(request.getStudentsId());
         Set<Teacher> updateTeachers = getTeachersFromId(request.getTeachersId());
 
+        // do update
         room.setName(request.getName());
         room.setDescription(request.getDescription());
-
         room.setStudents(updateStudents);
         room.setTeachers(updateTeachers);
         

@@ -49,24 +49,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User register(RegisterRequest request) {
+        // create new account
+
+        // check account exist
         if (userRepository.findUserByUsername(request.getUsername()).isPresent()){
             throw new UsernameNotFoundException("Username already existed!");
         }
 
         Set<Role> roles = new  HashSet<>();
 
-        var role = roleRepository.findByName(ERole.valueOf(request.getRole())).orElseThrow(()-> new CommonException("Role not found. Please create new role.    "));
-
+        // get roles
+        var role = roleRepository.findByName(ERole.valueOf(request.getRole())).orElseThrow(()-> new CommonException("Role not found. Please create new role."));
         roles.add(role);
 
-
-
+        // create new entity without info link to account
         var user = userRepository.save(User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .roles(roles)
                 .build());
-
         roles.forEach(r -> {
             saveUserEntity(user, r);
         });
@@ -84,12 +85,15 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
+        // get user and generate token
         var user = userRepository.findUserByUsername(request.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Incorrect username or password. Please try again."));
-
         var jwtToken = jwtUtils.generateToken(new HashMap<>(), CustomUserDetails.buildUserDetails(user));
         var refreshToken = jwtUtils.generateRefreshToken(CustomUserDetails.buildUserDetails(user));
 
+        // check token is valid
         revokeAllUserTokens(user);
+
+        // save token, time login to user
         saveUserToken(user, jwtToken);
         saveUserSummary(user);
 
@@ -103,13 +107,16 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void updateUserInfo(UserDto request) {
 
+        // get user
         User user = userRepository.findUserByUsername(request.getUsername()).orElseThrow();
 
+        // update info
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         Set<ERole> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
 
+        // check teacher account or student account and update
         if (roles.contains(ERole.ROLE_TEACHER)){
             var teacher = teacherRepository.findById(user.getTeacher().getId()).orElseThrow();
 
@@ -133,8 +140,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void saveUserToken(User user, String jwtToken) {
-
-
         var token = Token.builder()
                 .user(user)
                 .token(jwtToken)
@@ -173,8 +178,5 @@ public class AuthServiceImpl implements AuthService {
                     .build());
         }
     }
-
-
-
 
 }

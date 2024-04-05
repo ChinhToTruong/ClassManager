@@ -13,6 +13,9 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Override
     public SummaryResponse getSummariesByUserId(Long userId) {
+        // summary which about the moment user login
+
+        // get summaries
         var summaries = summaryRepository.findSummariesByUserId(userId);
 
         return SummaryResponse.builder()

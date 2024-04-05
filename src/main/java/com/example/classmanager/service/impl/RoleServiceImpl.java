@@ -30,9 +30,11 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Set<Role> createRole(UserDto userDto) {
+        // create new roles
         Set<Role> roleName = userDto.getRoles().stream().map(String::toUpperCase).map(r -> Role.builder().name(ERole.valueOf(r)).build()).collect(Collectors.toSet());
-        Set<Boolean> checkRole = userDto.getRoles().stream().map(role -> roleRepository.findByName(ERole.valueOf(role)).isPresent()).collect(Collectors.toSet());
 
+        // check roles exist
+        Set<Boolean> checkRole = userDto.getRoles().stream().map(role -> roleRepository.findByName(ERole.valueOf(role)).isPresent()).collect(Collectors.toSet());
         boolean containsTrue = false;
         for (Boolean value : checkRole) {
             if (value) {
@@ -41,6 +43,7 @@ public class RoleServiceImpl implements RoleService {
             }
         }
 
+        // if not found roles do creation
         if (containsTrue){
             throw new CommonException("Some roles exist.");
         }
