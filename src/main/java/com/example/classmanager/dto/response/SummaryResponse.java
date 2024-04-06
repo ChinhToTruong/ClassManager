@@ -1,6 +1,6 @@
 package com.example.classmanager.dto.response;
 
-import com.example.classmanager.entity.Summary;
+import com.example.classmanager.entity.CheckIn;
 import lombok.*;
 
 import java.util.List;
@@ -12,5 +12,5 @@ import java.util.List;
 @AllArgsConstructor
 public class SummaryResponse {
     private long count;
-    List<Summary> summaries;
+    List<CheckIn> summaries;
 }

@@ -1,6 +1,5 @@
 package com.example.classmanager.service.impl;
 
-import com.example.classmanager.dto.UserDto;
 import com.example.classmanager.dto.request.UsernamePasswordRequest;
 import com.example.classmanager.dto.request.UsernamePasswordRoleRequest;
 import com.example.classmanager.dto.response.JwtResponse;
@@ -13,7 +12,6 @@ import com.example.classmanager.security.customUser.CustomUserDetails;
 import com.example.classmanager.security.jwt.JwtUtils;
 import com.example.classmanager.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -130,7 +127,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void saveUserSummary(User user) {
-        var summary = Summary.builder().user(user).build();
+        var summary = CheckIn.builder().user(user).build();
         summaryRepository.save(summary);
     }
 

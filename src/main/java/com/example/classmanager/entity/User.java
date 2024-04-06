@@ -47,5 +47,5 @@ public class User {
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")
-    private Set<Summary> summaries;
+    private Set<CheckIn> summaries;
 }
