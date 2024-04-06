@@ -12,13 +12,6 @@ import java.util.Optional;
 @Repository
 public interface TeacherRepository extends JpaRepository<Teacher, Long> {
 
-    @Query(value = "select *\n" +
-            "from teacher\n" +
-            "join user_role\n" +
-            "on user_id = user_role.user_id\n" +
-            "right join role\n" +
-            "on user_role.role_id = role.id\n" +
-            "where role.name = ?1",nativeQuery = true)
     List<Teacher> findAll();
     @Query(value = "select t from Teacher t where t.fullName = ?1")
     List<Teacher> findTeachersByFullName(String fullName);
